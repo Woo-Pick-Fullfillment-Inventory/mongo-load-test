@@ -1,0 +1,1 @@
+The MongoClient::close() method forcefully closes a connection to the database, even if persistent connections are being used. You should never have to do this under normal circumstances.

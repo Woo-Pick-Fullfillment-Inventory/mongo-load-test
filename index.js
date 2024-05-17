@@ -1,43 +1,38 @@
-const { MongoClient, ServerApiVersion } = require("mongodb");
-const dotenv = require("dotenv");
+const express = require("express");
+const bodyParser = require("body-parser");
+const { mongoClient } = require("./mongo-init");
 const { createRandomProducts } = require("./generate-fake-data");
 
-dotenv.config();
+const app = express();
+const port = 3000;
 
-const MONGO_CONNECTION_URI = `mongodb+srv://woopickcloudvn:${process.env.MONGO_PASSWORD}@cluster0.brctpzh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+// Middleware to parse JSON bodies
+app.use(bodyParser.json());
 
-const client = new MongoClient(MONGO_CONNECTION_URI, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  },
-});
-
-async function run() {
+// Define a heavy-task endpoint
+app.post('/heavy-task', async (req, res) => {
   try {
-    await client.connect();
+    await mongoClient.connect();
 
-    const database = client.db("test-db");
+    const database = mongoClient.db("test-db");
     const collection = database.collection("test-collection");
 
-    // Start measuring time
-    console.time("InsertionTime");
-
     // create a document to insert
-    const fakeProducts = createRandomProducts(100000);
+    const fakeProducts = createRandomProducts(5000);
     const bulk = collection.initializeUnorderedBulkOp();
     fakeProducts.forEach((product) => {
         bulk.insert(product);
     });
     await bulk.execute();
 
-    // End measuring time
-    console.timeEnd("InsertionTime");
+    // Respond with success message
+    res.status(200).json({ message: 'Heavy task completed successfully' });
+  } catch (error) {
+    // Respond with error message
+    res.status(500).json({ error: error.message });
+  } 
+});
 
-  } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close();
-  }
-}
-run().catch(console.dir);
+app.listen(port, () => {
+    console.log(`Server is listening on port ${port}`);
+  });
