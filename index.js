@@ -18,7 +18,7 @@ app.post('/heavy-task', async (req, res) => {
     const collection = database.collection("test-collection");
 
     // create a document to insert
-    const fakeProducts = createRandomProducts(5000);
+    const fakeProducts = createRandomProducts(3000);
     const bulk = collection.initializeUnorderedBulkOp();
     fakeProducts.forEach((product) => {
         bulk.insert(product);
